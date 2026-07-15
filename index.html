@@ -3,133 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Synth Station</title>
+  <title>Synth Joy Station</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Icono de marcianito arcade retro -->
   <link rel="icon" type="image/png" href="https://icons8.com">
 </head>
 <body>
 
+  <!-- Líneas de escaneo CRT para la vibra de monitor de tubo -->
   <div class="efecto-crt-lineas"></div>
-
-  <!-- SINTETIZADOR DE AUDIO INTERACTIVO (Web Audio API) -->
-  <audio id="synth-ambient" loop src="https://mixkit.co"></audio>
 
   <div id="contenedor-synth-station">
     
+    <!-- MARQUESINA SUPERIOR: PANTALLA DE JUEGO RECREATIVO -->
     <header id="marquesina-synth">
-      <!-- Botón interactivo para activar la música de fondo -->
-      <button id="boton-audio" onclick="alternarAudio()">🔈 SOUND: OFF</button>
+      <div class="marcadores-arcade">
+        <span class="marcador-1up">1UP 0000</span>
+        <span class="marcador-creditos" id="txt-creditos">CREDITS 00</span>
+      </div>
+      
+      <!-- Botón que simula la ranura de monedas física -->
+      <button id="boton-audio" onclick="insertarMoneda()">🪙 INSERT COIN</button>
+      
       <div class="luces-ecualizador" id="eq-luces">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
-      <h1 class="titulo-synth">SYNTH STATION</h1>
-      <p class="subtitulo-synth">SELECT YOUR AUDIO-DIGITAL FREQUENCY</p>
+      
+      <h1 class="titulo-synth">SYNTH JOY STATION</h1>
+      <p class="subtitulo-synth">SELECT YOUR RETRO-DIGITAL CHALLENGE</p>
     </header>
 
+    <!-- REJILLA CENTRAL: SELECCIÓN DE JUEGO (CHARACTER/STAGE SELECT) -->
     <main id="rejilla-canales">
 
-
-       <!-- CANAL 1 : Reemplaza con tu link real de Render abajo -->
-      <a href="https://breakmates-chess.onrender.com" target="_blank" class="modulo-canal ajedrez" onclick="sonarClick()">
+      <!-- JUEGO 1: AJEDREZ MULTIJUGADOR -->
+      <a href="https://breakmates-chess.onrender.com" target="_blank" class="modulo-canal ajedrez" onclick="sonarClick(event, this)">
         <div class="borde-brillante"></div>
         <div class="contenido-canal">
-          <span class="frecuencia-hz">CH. 02 // 94.7 MHz</span>
-          <h2>CYBER CHESS</h2>
+          <span class="frecuencia-hz">STAGE 01 // CYBER BATTLE</span>
+          <h2>👑 CYBER CHESS</h2>
           <p class="desc-canal">Batalla estratégica de ajedrez inalámbrico en tiempo real con chat neón integrado.</p>
-          <div class="indicador-senal online">SIGNAL STABLE</div>
-        </div>
-      </a>
-      
-      <!-- CANAL 2: Reemplaza con tu link real de Render abajo -->
-      <a href="https://neon-hack-maze.onrender.com" target="_blank" class="modulo-canal maze" onclick="sonarClick()">
-        <div class="borde-brillante"></div>
-        <div class="contenido-canal">
-          <span class="frecuencia-hz">CH. 01 // 88.3 MHz</span>
-          <h2>NEON HACK MAZE</h2>
-          <p class="desc-canal">Infiltración procedural de 21x21 en red con niebla de guerra y dados de estado tácticos.</p>
-          <div class="indicador-senal online">SIGNAL STABLE</div>
+          <div class="indicador-senal online">READY PLAYER 1</div>
         </div>
       </a>
 
+      <!-- JUEGO 2: NEONHACKMAZE -->
+      <a href="https://neon-hack-maze.onrender.com" target="_blank" class="modulo-canal maze" onclick="sonarClick(event, this)">
+        <div class="borde-brillante"></div>
+        <div class="contenido-canal">
+          <span class="frecuencia-hz">STAGE 02 // VIRTUAL MAZE</span>
+          <h2>👾 NEON HACK MAZE</h2>
+          <p class="desc-canal">Infiltración procedural de 21x21 en red con niebla de guerra y dados de estado tácticos.</p>
+          <div class="indicador-senal online">READY PLAYER 1</div>
+        </div>
+      </a>
+
+    
+
+      <!-- RANURA BLOQUEADA -->
       <div class="modulo-canal slot-vacio">
         <div class="borde-brillante"></div>
         <div class="contenido-canal">
-          <span class="frecuencia-hz">CH. 03 // ??? MHz</span>
-          <h2>MUTED NODE</h2>
+          <span class="frecuencia-hz">STAGE 03 // LOCKER</span>
+          <h2>🔒 MUTED NODE</h2>
           <p class="desc-canal">Ranura de audio digital vacía. Sintetizando nuevos algoritmos de entretenimiento.</p>
-          <div class="indicador-senal offline">MUTED</div>
+          <div class="indicador-senal offline">INSERT COIN</div>
         </div>
       </div>
 
     </main>
 
+    <!-- PIE DE LA CABINA: TABLERO DE MANDOS FÍSICO -->
     <footer id="panel-controles">
-      <div class="perillas-esteticas">── Vol [▮▮▮▮▮▮▮▮ Resonancia] ── Mix [L ═══●═══ R]</div>
-      <div class="creditos">&copy; 2026 SYNTH STATION. ALL RIGHTS RESERVED. MIT LICENSE.</div>
+      <div class="tablero-palancas">
+        🕹️ [P1] 🔴 🔴 🔴 &nbsp;&nbsp;&nbsp;&nbsp; 🕹️ [P2] 🔵 🔵 🔵
+      </div>
+      <div class="creditos">&copy; 2026 SYNTH JOY STATION. ALL RIGHTS RESERVED. MIT LICENSE.</div>
     </footer>
 
   </div>
 
-  <!-- CONTROLADORES SINTETIZADORES JS -->
+  <!-- CONTROLADORES DE AUDIO Y LOGICA ARCADE -->
   <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let osciladorAmbiente = null;
-    let encendido = false;
+    let tieneCredito = false;
 
-    // Genera un sonido ambiental sintetizado de fondo (estilo Cyberpunk) al presionar ON
-    function alternarAudio() {
-      const btn = document.getElementById('boton-audio');
-      const eq = document.getElementById('eq-luces');
-      
-      if (!encendido) {
-        audioCtx.resume();
-        osciladorAmbiente = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        osciladorAmbiente.type = 'sawtooth'; 
-        osciladorAmbiente.frequency.setValueAtTime(55, audioCtx.currentTime); // Nota súper grave (Frecuencia Synth)
-        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime); // Volumen suave para que no moleste
-        
-        // Filtro pasa bajos para darle misterio retro
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(120, audioCtx.currentTime);
-
-        osciladorAmbiente.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        osciladorAmbiente.start();
-        btn.innerText = "🔊 SOUND: ON";
-        btn.classList.add('activo');
-        eq.classList.add('animando');
-        encendido = true;
-      } else {
-        if(osciladorAmbiente) osciladorAmbiente.stop();
-        btn.innerText = "🔈 SOUND: OFF";
-        btn.classList.remove('activo');
-        eq.classList.remove('animando');
-        encendido = false;
-      }
-    }
-
-    // Efecto de sonido retro "Bleep" rápido al hacer clic en un juego
-    function sonarClick() {
+    // Efecto de sonido retro "¡Clink!" de moneda + activación del sistema
+    function insertarMoneda() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      // Sonido de moneda: Dos pitidos metálicos rápidos hacia arriba
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); // Nota Si5
+      osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08); // Nota Mi6 rápido
       
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
-      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // Sube rápido de tono
-      
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
       
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
+      osc.stop(audioCtx.currentTime + 0.25);
+
+      // Cambios visuales en la cabina
+      document.getElementById('txt-creditos').innerText = "CREDITS 01";
+      document.getElementById('txt-creditos').classList.add('con-credito');
+      document.getElementById('boton-audio').innerText = "🎮 PRESS START";
+      document.getElementById('boton-audio').classList.add('activo');
+      document.getElementById('eq-luces').classList.add('animando');
+      
+      // Encender el zumbido Synth de fondo si no estaba encendido
+      if (!tieneCredito) {
+        activarZumbidoSynth();
+        tieneCredito = true;
+      }
+    }
+
+    function activarZumbidoSynth() {
+      osciladorAmbiente = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osciladorAmbiente.type = 'sawtooth'; 
+      osciladorAmbiente.frequency.setValueAtTime(55, audioCtx.currentTime); // Tono grave cyberpunk
+      gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime); // Suave
+      
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(110, audioCtx.currentTime);
+
+      osciladorAmbiente.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      osciladorAmbiente.start();
+    }
+
+    // Efecto de botón arcade al presionar un juego (Bloquea la salida si no hay moneda)
+    function sonarClick(event, elemento) {
+      if (!tieneCredito) {
+        event.preventDefault(); // Evita que abra el juego si no echó moneda
+        alert("🚨 INSERT COIN REQUIRED TO PLAY!");
+        return;
+      }
+
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      // Sonido clásico de disparo/inicio de juego láser
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3); // Cae el tono
+      
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
     }
   </script>
 </body>
