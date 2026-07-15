@@ -5,28 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Synth Station</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Icono de sintetizador / casete retro -->
   <link rel="icon" type="image/png" href="https://icons8.com">
 </head>
 <body>
 
-  <!-- Líneas de escaneo CRT para la vibra de monitor antiguo -->
   <div class="efecto-crt-lineas"></div>
+
+  <!-- SINTETIZADOR DE AUDIO INTERACTIVO (Web Audio API) -->
+  <audio id="synth-ambient" loop src="https://mixkit.co"></audio>
 
   <div id="contenedor-synth-station">
     
-    <!-- MARQUESINA SUPERIOR: PANEL DE SINTETIZADOR -->
     <header id="marquesina-synth">
-      <div class="luces-ecualizador"><span></span><span></span><span></span><span></span></div>
+      <!-- Botón interactivo para activar la música de fondo -->
+      <button id="boton-audio" onclick="alternarAudio()">🔈 SOUND: OFF</button>
+      <div class="luces-ecualizador" id="eq-luces">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
       <h1 class="titulo-synth">SYNTH STATION</h1>
       <p class="subtitulo-synth">SELECT YOUR AUDIO-DIGITAL FREQUENCY</p>
     </header>
 
-    <!-- REJILLA CENTRAL DE DISPOSITIVOS / JUEGOS -->
     <main id="rejilla-canales">
 
-      <!-- CANAL 1: NEONHACKMAZE -->
-      <a href="https://breakmates-chess.onrender.com" target="_blank" class="modulo-canal maze">
+      <!-- CANAL 1: Reemplaza con tu link real de Render abajo -->
+      <a href="https://breakmates-chess.onrender.com" target="_blank" class="modulo-canal maze" onclick="sonarClick()">
         <div class="borde-brillante"></div>
         <div class="contenido-canal">
           <span class="frecuencia-hz">CH. 01 // 88.3 MHz</span>
@@ -36,8 +39,8 @@
         </div>
       </a>
 
-      <!-- CANAL 2: AJEDREZ MULTIJUGADOR -->
-      <a href="https://neon-hack-maze.onrender.com" target="_blank" class="modulo-canal ajedrez">
+      <!-- CANAL 2: Reemplaza con tu link real de Render abajo -->
+      <a href="https://neon-hack-maze.onrender.com" target="_blank" class="modulo-canal ajedrez" onclick="sonarClick()">
         <div class="borde-brillante"></div>
         <div class="contenido-canal">
           <span class="frecuencia-hz">CH. 02 // 94.7 MHz</span>
@@ -47,7 +50,6 @@
         </div>
       </a>
 
-      <!-- CANAL 3: RANURA DE EXPANSIÓN FUTURA -->
       <div class="modulo-canal slot-vacio">
         <div class="borde-brillante"></div>
         <div class="contenido-canal">
@@ -60,13 +62,76 @@
 
     </main>
 
-    <!-- PIE DEL SINTETIZADOR -->
     <footer id="panel-controles">
-      <div class="perillas-esteticas">── Vol [▮▮▮▮▮▮▮▮▯] ── Mix [L ═══●═══ R]</div>
+      <div class="perillas-esteticas">── Vol [▮▮▮▮▮▮▮▮ Resonancia] ── Mix [L ═══●═══ R]</div>
       <div class="creditos">&copy; 2026 SYNTH STATION. ALL RIGHTS RESERVED. MIT LICENSE.</div>
     </footer>
 
   </div>
 
+  <!-- CONTROLADORES SINTETIZADORES JS -->
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let osciladorAmbiente = null;
+    let encendido = false;
+
+    // Genera un sonido ambiental sintetizado de fondo (estilo Cyberpunk) al presionar ON
+    function alternarAudio() {
+      const btn = document.getElementById('boton-audio');
+      const eq = document.getElementById('eq-luces');
+      
+      if (!encendido) {
+        audioCtx.resume();
+        osciladorAmbiente = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osciladorAmbiente.type = 'sawtooth'; 
+        osciladorAmbiente.frequency.setValueAtTime(55, audioCtx.currentTime); // Nota súper grave (Frecuencia Synth)
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime); // Volumen suave para que no moleste
+        
+        // Filtro pasa bajos para darle misterio retro
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+        osciladorAmbiente.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osciladorAmbiente.start();
+        btn.innerText = "🔊 SOUND: ON";
+        btn.classList.add('activo');
+        eq.classList.add('animando');
+        encendido = true;
+      } else {
+        if(osciladorAmbiente) osciladorAmbiente.stop();
+        btn.innerText = "🔈 SOUND: OFF";
+        btn.classList.remove('activo');
+        eq.classList.remove('animando');
+        encendido = false;
+      }
+    }
+
+    // Efecto de sonido retro "Bleep" rápido al hacer clic en un juego
+    function sonarClick() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // Sube rápido de tono
+      
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+  </script>
 </body>
 </html>
+
+
